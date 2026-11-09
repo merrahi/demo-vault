@@ -1,30 +1,28 @@
 services:
-  # 1. Base de données MySQL avec Healthcheck
   db:
     image: mysql:8.0
     container_name: demo_db
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: app_db
-      MYSQL_USER: app_user
-      MYSQL_PASSWORD: app_password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 15s
 
-  # 2. Serveur Vault
   vault:
     image: hashicorp/vault:latest
     container_name: demo_vault
     ports:
       - "8200:8200"
     environment:
-      VAULT_DEV_ROOT_TOKEN_ID: "myroottoken"
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN}
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
     cap_add:
       - IPC_LOCK
@@ -35,7 +33,6 @@ services:
       retries: 5
       start_period: 5s
 
-  # 3. Interface phpMyAdmin
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: demo_phpmyadmin
@@ -43,12 +40,11 @@ services:
       - "8081:80"
     environment:
       PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
 
-  # 4. Application PHP
   web:
     build: ./app
     container_name: demo_web
@@ -56,7 +52,7 @@ services:
       - "8080:80"
     environment:
       VAULT_ADDR: "http://vault:8200"
-      VAULT_TOKEN: "myroottoken"
+      VAULT_TOKEN: ${VAULT_ROOT_TOKEN}
     depends_on:
       db:
         condition: service_healthy
