@@ -1,0 +1,17 @@
+# Fichier .gitignore
+
+# Fichiers d'environnement locaux contenant des secrets
+.env
+.env.local
+
+# Données persistantes des conteneurs (si vous ajoutez des volumes locaux plus tard)
+.data/
+mysql_data/
+
+# Fichiers système et éditeurs
+.DS_Store
+.idea/
+.vscode/
+
+# Logs et caches PHP
+*.log
